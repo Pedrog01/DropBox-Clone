@@ -88,56 +88,43 @@ class DropBoxController{
 
   }
 
-  uploadTask(files){
+ uploadTask(files) {
+    let promises = [];
 
-      let promises = [];
+    [...files].forEach(file => {
+      promises.push(new Promise((resolve, reject) => {
+        let ajax = new XMLHttpRequest();
 
-      [...files].forEach(file=>{
+        ajax.open('POST', '/upload')
 
-          promises.push(new Promise((resolve, reject)=>{
+        ajax.onload = event => {
 
-              let ajax = new XMLHttpRequest();
+          try {
+            resolve(JSON.parse(ajax.responseText))
+          } catch (e) {
+            reject(e)
+          }
+        }
 
-              ajax.open('POST', '/upload');
+        ajax.onerror = event => {
+          reject(event)
+        }
 
-              ajax.onload = event => {
+        ajax.upload.onprogress = event => {
+          this.uploadProgress(event, file)
+        }
 
-                 
+        let formData = new FormData()
 
-                  try{
-                      resolve(JSON.parse(ajax.responseText))
-                  }catch(e){
+        formData.append('input-file', file)
 
-                      reject(e);
+        this.startUploadTime = Date.now();
 
-                  }
+        ajax.send(formData)
 
-              };
+      }))
+    })
 
-              ajax.onerror = event =>{
-
-                  
-                  reject(event);
-
-              };
-
-              ajax.upload.onprogress = event=>{
-
-                  this.uploadProgress(event, file);
-                  
-              };
-
-              let formData = new FormData();
-
-              formData.append('input-file', file);
-
-              this.startUploadTime = Date.now();
-
-              ajax.send(formData);
-
-      }));
-
-      })
 
       return Promise.all(promises);
 
@@ -349,51 +336,68 @@ class DropBoxController{
 
   }
 
-  getFileView(file,key){
+ getFileView(file, key) {
 
     let li = document.createElement('li')
-    
-    li.dataset.key = key;
+
+    li.dataset.key = key
 
     li.innerHTML = `
       ${this.getFileIconView(file)}
-      <div class="name text-center">${file.name}</div>      
-    `;
+      <div class="name text-center">${file.name}</div>
+    ` 
+    this.initEventsLi(li)
 
-    this.initEvents(li);
-
-      return li;
+    return li;
   }
 
-  readFiles(){
-
+  readFiles() {
     this.getFirebaseRef().on('value', snapshot => {
-
-
-      snapshot.forEach(snapshotItem => {
-
       this.listFilesEl.innerHTML = '';
-
-      let key = snapshotItem.key;
-      let data = snapshotItem.val();
-
-      this.listFilesEl.appendChild(this.getFileView(data,key));
-
-      });
-
-
-    });
-
+      snapshot.forEach(snapshotItem => {
+        let key = snapshotItem.key;
+        let data = snapshotItem.val()
+        
+        this.listFilesEl.appendChild(this.getFileView(data, key))
+      })
+    })
   }
 
-  initEvents(li){
+  initEventsLi(li) {
+    li.addEventListener('click', e => {
 
-    li.addEventListener('click', e=>{
+      if (e.shiftKey) {
+        let firstLi = this.listFilesEl.querySelector('.selected');
 
-      li.classList.toggle('selected');
+        if (firstLi) {
+          let indexStart;
+          let indexEnd;
+          let lis = li.parentElement.childNodes;
 
-    });
+          lis.forEach((el, index) => {
+            if (firstLi === el) indexStart = index;
+            if (li === el) indexEnd = index;
+          })
+          
+          let index = [indexStart, indexEnd].sort()
 
+          lis.forEach((el, i) => {
+            if (i >= index[0] && i <= index[1]) {
+              el.classList.add('selected')
+            }
+          })
+          return true;
+        }
+      }
+
+      if (!e.ctrlKey) {
+        this.listFilesEl.querySelectorAll('li.selected').forEach(el => {
+          el.classList.remove('selected')
+        })
+      }
+
+      li.classList.toggle('selected')
+    })
   }
 
 }
