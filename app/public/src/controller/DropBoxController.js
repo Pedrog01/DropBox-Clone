@@ -360,6 +360,8 @@ class DropBoxController{
       <div class="name text-center">${file.name}</div>      
     `;
 
+    this.initEvents(li);
+
       return li;
   }
 
@@ -379,6 +381,16 @@ class DropBoxController{
 
       });
 
+
+    });
+
+  }
+
+  initEvents(li){
+
+    li.addEventListener('click', e=>{
+
+      li.classList.toggle('selected');
 
     });
 
