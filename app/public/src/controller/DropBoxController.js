@@ -1,4 +1,3 @@
-
 class DropBoxController{
 
   constructor(){
@@ -9,9 +8,11 @@ class DropBoxController{
       this.progressBarEl = this.snackModalEl.querySelector('.mc-progress-bar-fg');
       this.namefileEl = this.snackModalEl.querySelector('.filename');
       this.timeleftEl = this.snackModalEl.querySelector('.timeleft');
+      this.listFilesEl = document.querySelector('#list-of-files-and-directories');
       
       this.conectFirabase();
       this.initEvents();
+      this.readFiles();
 
   }
 
@@ -25,7 +26,7 @@ class DropBoxController{
       projectId: "dropbox-clone-68723",
       storageBucket: "dropbox-clone-68723.appspot.com",
       messagingSenderId: "135673614264",
-      appId: "1:135673614264:web:2964ff3d04d2e96b83094d"
+      appId: "1:135673614264:web:0e86e2b670b9f1a783094d"
     };
 
       firebase.initializeApp(firebaseConfig);
@@ -348,14 +349,38 @@ class DropBoxController{
 
   }
 
-  getFileView(file){
+  getFileView(file,key){
 
-      return `
-      <li>
-          ${this.getFileIconView(file)}
-          <div class="name text-center">${file.name}</div>
-      </li>               
-      `;
+    let li = document.createElement('li')
+    
+    li.dataset.key = key;
+
+    li.innerHTML = `
+      ${this.getFileIconView(file)}
+      <div class="name text-center">${file.name}</div>      
+    `;
+
+      return li;
+  }
+
+  readFiles(){
+
+    this.getFirebaseRef().on('value', snapshot => {
+
+
+      snapshot.forEach(snapshotItem => {
+
+      this.listFilesEl.innerHTML = '';
+
+      let key = snapshotItem.key;
+      let data = snapshotItem.val();
+
+      this.listFilesEl.appendChild(this.getFileView(data,key));
+
+      });
+
+
+    });
 
   }
 
