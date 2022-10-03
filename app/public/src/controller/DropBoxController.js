@@ -12,6 +12,10 @@ class DropBoxController{
       this.timeleftEl = this.snackModalEl.querySelector('.timeleft');
       this.listFilesEl = document.querySelector('#list-of-files-and-directories');
       
+      this.btnNewFolder = document.querySelector('#btnNewFolder');
+      this.btnRename = document.querySelector('#btn-rename');
+      this.btnDelete = document.querySelector('#btn-delete');
+
       this.conectFirabase();
       this.initEvents();
       this.readFiles();
@@ -35,9 +39,37 @@ class DropBoxController{
       
   }
 
+
+  getSelection(){
+
+    return  this.listFilesEl.querySelectorAll('.selected');
+
+  };
+
   initEvents(){
 
     this.listFilesEl.addEventListener('selectionchange', e=> {
+
+      switch(this.getSelection().length){
+
+
+        case 0:
+          this.btnDelete.style.display = 'none'
+          this.btnRename.style.display = 'none'
+        break;
+
+        case 1:
+          this.btnDelete.style.display = 'block'
+          this.btnRename.style.display = 'block'
+        break;
+
+        default:
+          this.btnDelete.style.display = 'block'
+          this.btnRename.style.display = 'none'
+
+
+      }
+
 
       console.log('selectionchange')
 
@@ -375,7 +407,7 @@ class DropBoxController{
     li.addEventListener('click', e => {
 
 
-      this.listFilesEl.dispatchEvent(this.onselectionchange);
+    
 
       if (e.shiftKey) {
         let firstLi = this.listFilesEl.querySelector('.selected');
@@ -396,7 +428,8 @@ class DropBoxController{
             if (i >= index[0] && i <= index[1]) {
               el.classList.add('selected')
             }
-          })
+          });
+          this.listFilesEl.dispatchEvent(this.onselectionchange);
           return true;
         }
       }
@@ -407,7 +440,8 @@ class DropBoxController{
         })
       }
 
-      li.classList.toggle('selected')
+      li.classList.toggle('selected');
+      this.listFilesEl.dispatchEvent(this.onselectionchange);
     })
   }
 
